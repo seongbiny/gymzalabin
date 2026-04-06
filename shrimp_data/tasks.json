@@ -1,0 +1,112 @@
+{
+  "tasks": [
+    {
+      "id": "2362019b-25d7-48a7-b880-6f6f3d955224",
+      "name": "Notion DB 스키마 검증",
+      "description": "Notion 워크스페이스에서 운동 기록 DB가 PRD §4 스키마 그대로 생성되어 있는지 확인한다. lib/notion.ts의 parseWorkoutRecord 함수가 한국어 필드명과 타입에 의존하므로 스키마가 정확히 일치해야 API 파싱이 정상 동작한다.",
+      "notes": "필드명은 반드시 한국어 그대로여야 한다. 예: '무게(kg)' — 괄호 포함. 영문으로 바꾸면 파싱 함수 전체 수정 필요.",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2026-04-06T23:46:07.267Z",
+      "updatedAt": "2026-04-06T23:46:07.268Z",
+      "relatedFiles": [
+        {
+          "path": "src/lib/notion.ts",
+          "type": "REFERENCE",
+          "description": "parseWorkoutRecord 함수 — 한국어 필드명으로 Notion 응답 파싱",
+          "lineStart": 54,
+          "lineEnd": 80
+        },
+        {
+          "path": "src/types/workout.ts",
+          "type": "REFERENCE",
+          "description": "WorkoutRecord 타입 정의",
+          "lineStart": 1,
+          "lineEnd": 46
+        },
+        {
+          "path": "docs/PRD.md",
+          "type": "REFERENCE",
+          "description": "§4 Notion DB 스키마 명세"
+        }
+      ],
+      "implementationGuide": "Notion에서 직접 확인:\n1. 이름 — Title 타입\n2. 날짜 — Date 타입\n3. 카테고리 — Select 타입 (옵션: 웨이트, 러닝)\n4. 루틴 — Select 타입 (옵션: 가슴, 등, 하체, 어깨, 팔, 전신, -)\n5. 무게(kg) — Number 타입\n6. 세트 — Number 타입\n7. 반복 — Number 타입\n8. 메모 — Text(rich_text) 타입\n필드명 오탈자나 타입 불일치 시 lib/notion.ts의 해당 타입가드 함수를 수정한다.",
+      "verificationCriteria": "Notion DB에 8개 필드가 올바른 타입과 한국어 이름으로 존재하며, 테스트 레코드 1건 입력 시 API 응답에서 모든 필드 값이 반환된다.",
+      "analysisResult": "Phase 1 프로젝트 초기 설정 목표: 패키지·환경변수·폴더구조·핵심파일은 이미 완료됨. Notion 외부 설정(DB 스키마, Integration 권한) 확인과 로컬 서버 기동 검증만 남아있다."
+    },
+    {
+      "id": "a1129cff-3880-40c5-91de-bd065a040e21",
+      "name": "Notion Integration 공유 권한 확인",
+      "description": "Notion Integration(API 키)이 운동 기록 DB에 Share 권한으로 연결되어 있는지 확인한다. 권한이 없으면 NOTION_TOKEN이 올바르더라도 API 호출 시 404 또는 권한 오류가 발생한다.",
+      "notes": "NOTION_DATABASE_ID는 DB URL에서 추출한 32자리 ID다. 대시 없는 형식(339db6a2...)이 맞다.",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "2362019b-25d7-48a7-b880-6f6f3d955224"
+        }
+      ],
+      "createdAt": "2026-04-06T23:46:07.268Z",
+      "updatedAt": "2026-04-06T23:46:07.268Z",
+      "relatedFiles": [
+        {
+          "path": ".env.local",
+          "type": "REFERENCE",
+          "description": "NOTION_TOKEN, NOTION_DATABASE_ID 환경변수"
+        },
+        {
+          "path": "src/lib/notion.ts",
+          "type": "REFERENCE",
+          "description": "Notion 클라이언트 초기화 — process.env.NOTION_TOKEN 사용",
+          "lineStart": 1,
+          "lineEnd": 13
+        }
+      ],
+      "implementationGuide": "1. Notion 워크스페이스 → 운동 기록 DB 페이지 열기\n2. 우상단 '...' 메뉴 → Connections(연결) 탭\n3. 생성한 Integration이 목록에 있는지 확인\n4. 없으면 'Add connections'에서 해당 Integration 추가\n5. .env.local의 NOTION_TOKEN 값이 해당 Integration의 Internal Integration Secret과 일치하는지 재확인",
+      "verificationCriteria": "Notion DB Connections 탭에 Integration이 등록되어 있고, lib/notion.ts의 fetchWorkoutRecords() 호출 시 오류 없이 빈 배열 또는 레코드 배열을 반환한다.",
+      "analysisResult": "Phase 1 프로젝트 초기 설정 목표: 패키지·환경변수·폴더구조·핵심파일은 이미 완료됨. Notion 외부 설정(DB 스키마, Integration 권한) 확인과 로컬 서버 기동 검증만 남아있다."
+    },
+    {
+      "id": "bcc00e68-53c0-4a09-9f58-14ac083a252a",
+      "name": "로컬 서버 기동 및 대시보드 렌더링 확인",
+      "description": "npm run dev를 실행하여 오류 없이 서버가 기동되고, localhost:3000에서 대시보드가 정상 렌더링되는지 확인한다. Notion API 연결까지 end-to-end 검증하는 Phase 1 최종 완료 기준이다.",
+      "notes": "Next.js 16 특이사항: node_modules/next/dist/docs/ 참조. useSearchParams()는 Suspense로 감싸야 빌드 경고 없음 — RecordsSection에서 이미 처리되어 있어야 한다.",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "a1129cff-3880-40c5-91de-bd065a040e21"
+        }
+      ],
+      "createdAt": "2026-04-06T23:46:07.268Z",
+      "updatedAt": "2026-04-06T23:46:07.268Z",
+      "relatedFiles": [
+        {
+          "path": "src/app/page.tsx",
+          "type": "REFERENCE",
+          "description": "서버 컴포넌트 — Notion fetch + ISR revalidate:60",
+          "lineStart": 1,
+          "lineEnd": 23
+        },
+        {
+          "path": "src/app/layout.tsx",
+          "type": "REFERENCE",
+          "description": "루트 레이아웃",
+          "lineStart": 1,
+          "lineEnd": 32
+        },
+        {
+          "path": "src/app/error.tsx",
+          "type": "REFERENCE",
+          "description": "Notion API 실패 시 에러 바운더리"
+        },
+        {
+          "path": "src/app/loading.tsx",
+          "type": "REFERENCE",
+          "description": "로딩 스켈레톤 UI"
+        }
+      ],
+      "implementationGuide": "1. npm run dev 실행\n2. 터미널 출력에서 오류 없이 'Ready' 메시지 확인\n3. localhost:3000 접속\n4. 통계 카드(4개), 차트 섹션(2개), 기록 테이블이 렌더링되는지 확인\n5. Notion DB에 데이터가 없으면 빈 상태 UI가 표시되는지 확인\n6. 브라우저 콘솔에 Notion API 오류 없는지 확인\n오류 발생 시 우선순위: TypeScript 오류 → Notion API 오류 → 렌더링 오류 순으로 확인",
+      "verificationCriteria": "npm run dev 후 localhost:3000에서 통계 카드·차트·테이블 3개 섹션이 모두 렌더링되고, 브라우저 콘솔에 Notion API 관련 오류가 없다.",
+      "analysisResult": "Phase 1 프로젝트 초기 설정 목표: 패키지·환경변수·폴더구조·핵심파일은 이미 완료됨. Notion 외부 설정(DB 스키마, Integration 권한) 확인과 로컬 서버 기동 검증만 남아있다."
+    }
+  ]
+}
