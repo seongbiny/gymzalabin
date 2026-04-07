@@ -160,35 +160,36 @@ export function groupByWeek(records: WorkoutRecord[]): WeeklyVolumeData {
 }
 
 /**
- * 최근 30일 러닝 거리 날짜별 그룹핑
+ * 최근 30일 러닝 거리 날짜별 그룹핑 (빈 날짜는 0으로 채워 연속성 보장)
  */
 export function groupRunningByDate(records: WorkoutRecord[]): RunningDistanceData {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-  thirtyDaysAgo.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const runningRecords = records
-    .filter((r) => {
-      if (r.category !== '러닝' || !r.date) return false;
-      const date = new Date(r.date);
-      return date >= thirtyDaysAgo;
-    })
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 29);
 
-  // 날짜별 합산
+  // 날짜별 러닝 거리 합산
   const dateMap = new Map<string, number>();
-  for (const r of runningRecords) {
-    const current = dateMap.get(r.date) ?? 0;
-    dateMap.set(r.date, current + (r.weightKg ?? 0));
+  for (const r of records) {
+    if (r.category !== '러닝' || !r.date) continue;
+    const date = new Date(r.date);
+    date.setHours(0, 0, 0, 0);
+    if (date < thirtyDaysAgo || date > today) continue;
+    const key = r.date.slice(0, 10); // YYYY-MM-DD
+    dateMap.set(key, (dateMap.get(key) ?? 0) + (r.weightKg ?? 0));
   }
 
+  // 30일 전체 슬롯 생성 (빈 날짜는 0)
   const labels: string[] = [];
   const distances: number[] = [];
 
-  for (const [date, distance] of dateMap.entries()) {
-    const d = new Date(date);
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-    distances.push(distance);
+    distances.push(dateMap.get(key) ?? 0);
   }
 
   return { labels, distances };

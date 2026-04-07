@@ -11,6 +11,7 @@ import type { WorkoutRecord } from '@/types/workout';
 
 interface WorkoutTableProps {
   records: WorkoutRecord[];
+  onRowClick?: (record: WorkoutRecord) => void;
 }
 
 // 날짜 포맷: YYYY-MM-DD → MM/DD
@@ -20,7 +21,7 @@ function formatDate(dateStr: string): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-export function WorkoutTable({ records }: WorkoutTableProps) {
+export function WorkoutTable({ records, onRowClick }: WorkoutTableProps) {
   if (records.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center rounded-xl border text-sm text-muted-foreground">
@@ -45,7 +46,11 @@ export function WorkoutTable({ records }: WorkoutTableProps) {
         </TableHeader>
         <TableBody>
           {records.map((record) => (
-            <TableRow key={record.id}>
+            <TableRow
+              key={record.id}
+              onClick={() => onRowClick?.(record)}
+              className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
+            >
               <TableCell className="text-sm">{formatDate(record.date)}</TableCell>
               <TableCell className="font-medium">{record.name}</TableCell>
               <TableCell>
