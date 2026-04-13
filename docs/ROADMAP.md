@@ -27,7 +27,13 @@
 - [ ] Notion DB에 Integration 공유(Share) 권한 부여
 - [ ] 폴더 구조 확정 및 초기화
 
-```
+```CLAUDE.md 파일을 열어서 다음 내용이 있는지 확인하고, 없으면 추가해줘:
+
+# Project Context
+- PRD 문서: @docs/PRD.md
+- 개발 로드맵: @docs/ROADMAP.md
+
+이렇게 @경로 형식으로 추가해서 Claude Code가 이 파일들을 참고할 수 있도록 해줘.
 src/
 ├── app/
 │   └── page.tsx          # 대시보드 메인
